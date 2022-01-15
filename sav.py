@@ -92,6 +92,7 @@ def draw_list(draw_info, color_pos={}, clear_bg = False):
         else:
             color = draw_info.GRADIENTS[round(val / 12)]
 
+        # green/red swap
         if i in color_pos:
             color = color_pos[i]
 
@@ -123,6 +124,25 @@ def bubble_sort(draw_info, ascend = True):
                 list[j], list[j + 1] = list[j + 1], list[j]
                 draw_list(draw_info, {j: draw_info.GREEN, j + 1: draw_info.RED}, True)
                 yield True
+    return list
+
+def insertion_sort(draw_info, ascend = True):
+    list = draw_info.list
+    for i in range(1, len(list)):
+        current = list[i]
+        while True:
+            ascend_sort = i > 0 and list[i - 1] > current and ascend
+            descend_sort = i > 0 and list[i - 1] < current and not ascend
+            
+            if not ascend_sort and not descend_sort:
+                break
+
+            list[i] = list[i - 1]
+            i = i - 1
+            list[i] = current
+            draw_list(draw_info, {i - 1:draw_info.GREEN, i: draw_info.RED}, True)
+            yield True
+
     return list
 
 def main():
@@ -161,7 +181,7 @@ def main():
                 run = False
             if event.type != pygame.KEYDOWN:
                 continue
-            
+
             if event.key == pygame.K_r:
                 list = generate_starting_list(n, min_val, max_val)
                 draw_info.set_list(list)
@@ -173,6 +193,12 @@ def main():
                 ascend = True
             elif event.key == pygame.K_d and not sort:
                 ascend = False
+            elif event.key == pygame.K_1 and not sort:
+                sorting_algorithm = bubble_sort
+                sort_algo_name = "Bubble Sort"
+            elif event.key == pygame.K_2 and not sort:
+                sorting_algorithm = insertion_sort
+                sort_algo_name = "Insertion Sort"
 
     pygame.quit()
 
