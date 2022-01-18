@@ -1,6 +1,6 @@
 import pygame
 import random
-import math
+import time
 
 pygame.init()
 
@@ -43,7 +43,6 @@ class DrawInfo:
         self.window = pygame.display.set_mode((width, height))
         pygame.display.set_caption("Sorting Algorithm Visualizer")
         self.set_list(list)
-        print(pygame.font.get_fonts())
     
     # adaptive display size with margins
     def set_list(self, list):
@@ -52,7 +51,7 @@ class DrawInfo:
         self.max_val = max(list)
 
         self.bars_width = round((self.width - self.X_MARGIN) / len(list))
-        self.bars_max_height = math.floor((self.height - self.Y_MARGIN) / (self.max_val - self.min_val))
+        self.bars_max_height = int((self.height - self.Y_MARGIN) / (self.max_val - self.min_val))
         self.start_x = self.X_MARGIN // 2
 
 # basically refills the window every frame
@@ -66,9 +65,9 @@ def draw(draw_info, algo_name, ascend):
     draw_info.window.blit(title_text, (draw_info.width/2 - title_text.get_width()/2, 5))
 
     # controls text
-    controls_text = draw_info.FONT.render("R - Reset | SPACE - Sort | A - Ascend | D - Descend", 1, draw_info.DARK_GREY)
+    controls_text = draw_info.FONT.render("SPACE - Sort/Stop | R - Reset | A - Ascend | D - Descend", 1, draw_info.DARK_GREY)
     draw_info.window.blit(controls_text, (draw_info.width/2 - controls_text.get_width()/2, 50))
-    sorting_text = draw_info.FONT.render("1 - Bubble Sort | 2 - Insertion Sort | 3 - Selection Sort", 1, draw_info.DARK_GREY)
+    sorting_text = draw_info.FONT.render("1 - Bubble Sort | 2 - Insertion Sort | 3 - Selection Sort | 4 - Merge Sort | 5 - Quick Sort", 1, draw_info.DARK_GREY)
     draw_info.window.blit(sorting_text, (draw_info.width/2 - sorting_text.get_width()/2, 80))
 
 
@@ -92,17 +91,14 @@ def draw_list(draw_info, color_pos={}, clear_bg = False):
         else:
             color = draw_info.GRADIENTS[round(val / 12)]
 
-        # green/red swap
+        # green/red bars replaced
         if i in color_pos:
             color = color_pos[i]
 
-        pygame.draw.rect(draw_info.window, color, (x, y, draw_info.bars_width , draw_info.height))
+        pygame.draw.rect(draw_info.window, color, (x, y, draw_info.bars_width , draw_info.height - y))
     
     if clear_bg:
         pygame.display.update()
-
-        
-
 
 def generate_starting_list(n, min_val, max_val):
 
@@ -113,50 +109,6 @@ def generate_starting_list(n, min_val, max_val):
         list.append(val)
 
     return list
-
-def bubble_sort(draw_info, ascend = True):
-    list = draw_info.list
-    for i in range(len(list) - 1):
-        for j in range(len(list) - i - 1):
-            num1 = list[j]
-            num2 = list[j + 1]
-            if (ascend and num1 > num2) or (not ascend and num1 < num2 ):
-                list[j], list[j + 1] = list[j + 1], list[j]
-            draw_list(draw_info, {j: draw_info.GREEN, j + 1: draw_info.RED}, True)
-            yield True
-    return list
-
-def insertion_sort(draw_info, ascend = True):
-    list = draw_info.list
-    for i in range(1, len(list)):
-        current = list[i]
-        while True:
-            ascend_sort = i > 0 and list[i - 1] > current and ascend
-            descend_sort = i > 0 and list[i - 1] < current and not ascend
-            
-            if not ascend_sort and not descend_sort:
-                break
-
-            list[i] = list[i - 1]
-            i = i - 1
-            list[i] = current
-            draw_list(draw_info, {i - 1: draw_info.GREEN, i: draw_info.RED}, True)
-            yield True
-
-    return list
-
-def selection_sort(draw_info, ascend = True):
-    list = draw_info.list
-    
-    for i in range(len(list) - 1):
-        current = i
-        for j in range(i + 1, len(list)):
-            if (list[j] < list[current] and ascend) or (list[j] > list[current] and not ascend):
-                current = j 
-            draw_list(draw_info, {current: draw_info.GREEN, j: draw_info.RED}, True)
-            yield True
-        list[current], list[i] = list[i], list[current]
-
 
 def main():
     run = True 
@@ -180,7 +132,7 @@ def main():
     draw_info = DrawInfo(1280, 800, list)
 
     while run:
-        clock.tick(60)
+        clock.tick(30)
 
         if sort:
             try:
@@ -204,7 +156,10 @@ def main():
                 sort = False
             elif event.key == pygame.K_SPACE and sort == False:
                 sort = True
-                sorting_algo_generator = sorting_algorithm(draw_info, ascend)
+                sorting_algo_generator = sorting_algorithm(draw_info, draw_info.list,  ascend)
+            elif event.key == pygame.K_SPACE and sort == True:
+                sort = False
+                sorting_algo_generator = sorting_algorithm(draw_info, draw_info.list,  ascend)
             elif event.key == pygame.K_a and not sort:
                 ascend = True
             elif event.key == pygame.K_d and not sort:
@@ -218,8 +173,96 @@ def main():
             elif event.key == pygame.K_3 and not sort:
                 sorting_algorithm = selection_sort
                 sort_algo_name = "Selection Sort"
+            elif event.key == pygame.K_4 and not sort:
+                sorting_algorithm = merge_sort
+                sort_algo_name = "Merge Sort"
 
     pygame.quit()
+
+def bubble_sort(draw_info, list, ascend = True):
+    for i in range(len(list) - 1):
+        for j in range(len(list) - i - 1):
+            num1 = list[j]
+            num2 = list[j + 1]
+
+            # if True swap bars
+            if (ascend and num1 > num2) or (not ascend and num1 < num2 ):
+                list[j], list[j + 1] = list[j + 1], list[j]
+                draw_list(draw_info, {j: draw_info.GREEN, j + 1: draw_info.RED}, True)
+                yield True
+    return list
+
+def insertion_sort(draw_info, list, ascend = True):
+    for i in range(1, len(list)):
+        current = list[i]
+        while True:
+            # handles when in correct position
+            ascend_sort = i > 0 and list[i - 1] > current and ascend
+            descend_sort = i > 0 and list[i - 1] < current and not ascend
+            
+            # stops when in correct position
+            if not ascend_sort and not descend_sort:
+                break
+
+            list[i], i = list[i - 1], i - 1
+            list[i] = current
+            draw_list(draw_info, {i - 1: draw_info.GREEN, i: draw_info.RED}, True)
+            yield True
+
+    return list
+
+def selection_sort(draw_info, list, ascend = True):
+    for i in range(len(list) - 1):
+        current = i
+        for j in range(i + 1, len(list)):
+            if (list[j] < list[current] and ascend) or (list[j] > list[current] and not ascend):
+                current = j 
+        list[current], list[i] = list[i], list[current]
+        draw_list(draw_info, {i - 1: draw_info.GREEN, current: draw_info.RED}, True)
+        yield True
+    return list
+
+def merge_sort(draw_info, lst, ascend = True):
+    print("list: ", lst)
+    if len(lst) > 1:
+        middle = len(lst)//2
+
+        L = lst[:middle]
+        R = lst[middle:]
+
+        # Sorting the Left half
+        list(merge_sort(draw_info, L, ascend))
+
+        # Sorting the Right half
+        list(merge_sort(draw_info, R, ascend))
+
+        i = j = k = 0
+        while i < len(L) and j < len(R):
+            if L[i] < R[j]:
+                lst[k] = L[i]
+                i += 1
+            else:
+                lst[k] = R[j]
+                j += 1
+            k += 1
+            time.sleep(0.02)
+            draw_list(draw_info,{k: draw_info.GREEN, i: draw_info.RED},True)
+            yield True
+            
+        
+        while i < len(L):
+            lst[k] = L[i]
+            i += 1
+            k += 1
+            
+        while j < len(R):
+            lst[k] = R[j]
+            j += 1
+            k += 1
+    return lst
+
+def quick_sort(draw_info, list, ascend = True):
+    pass
 
 if __name__ == "__main__":
     main()
