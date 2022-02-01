@@ -1,3 +1,4 @@
+from re import L
 import pygame
 import random
 import time
@@ -132,7 +133,7 @@ def main():
     draw_info = DrawInfo(1280, 800, list)
 
     while run:
-        clock.tick(30)
+        clock.tick(60)
 
         if sort:
             try:
@@ -156,10 +157,10 @@ def main():
                 sort = False
             elif event.key == pygame.K_SPACE and sort == False:
                 sort = True
-                sorting_algo_generator = sorting_algorithm(draw_info, draw_info.list,  ascend)
+                sorting_algo_generator = sorting_algorithm(0, n - 1, draw_info.list, draw_info, ascend)
             elif event.key == pygame.K_SPACE and sort == True:
                 sort = False
-                sorting_algo_generator = sorting_algorithm(draw_info, draw_info.list,  ascend)
+                sorting_algo_generator = sorting_algorithm(0, n - 1, draw_info.list, draw_info, ascend)
             elif event.key == pygame.K_a and not sort:
                 ascend = True
             elif event.key == pygame.K_d and not sort:
@@ -179,89 +180,106 @@ def main():
 
     pygame.quit()
 
-def bubble_sort(draw_info, list, ascend = True):
-    for i in range(len(list) - 1):
-        for j in range(len(list) - i - 1):
-            num1 = list[j]
-            num2 = list[j + 1]
+def bubble_sort(first, last, lst, draw_info, ascend = True):
+    for i in range(len(lst) - 1):
+        for j in range(len(lst) - i - 1):
+            num1 = lst[j]
+            num2 = lst[j + 1]
 
             # if True swap bars
             if (ascend and num1 > num2) or (not ascend and num1 < num2 ):
-                list[j], list[j + 1] = list[j + 1], list[j]
+                lst[j], lst[j + 1] = lst[j + 1], lst[j]
                 draw_list(draw_info, {j: draw_info.GREEN, j + 1: draw_info.RED}, True)
                 yield True
-    return list
+    return lst
 
-def insertion_sort(draw_info, list, ascend = True):
-    for i in range(1, len(list)):
-        current = list[i]
+def insertion_sort(first, last, lst, draw_info, ascend = True):
+    for i in range(1, len(lst)):
+        current = lst[i]
         while True:
             # handles when in correct position
-            ascend_sort = i > 0 and list[i - 1] > current and ascend
-            descend_sort = i > 0 and list[i - 1] < current and not ascend
+            ascend_sort = i > 0 and lst[i - 1] > current and ascend
+            descend_sort = i > 0 and lst[i - 1] < current and not ascend
             
             # stops when in correct position
             if not ascend_sort and not descend_sort:
                 break
 
-            list[i], i = list[i - 1], i - 1
-            list[i] = current
+            lst[i], i = lst[i - 1], i - 1
+            lst[i] = current
             draw_list(draw_info, {i - 1: draw_info.GREEN, i: draw_info.RED}, True)
             yield True
 
-    return list
+    return lst
 
-def selection_sort(draw_info, list, ascend = True):
-    for i in range(len(list) - 1):
+def selection_sort(first, last, lst, draw_info, ascend = True):
+    for i in range(len(lst) - 1):
         current = i
-        for j in range(i + 1, len(list)):
-            if (list[j] < list[current] and ascend) or (list[j] > list[current] and not ascend):
-                current = j 
-        list[current], list[i] = list[i], list[current]
+        for j in range(i + 1, len(lst)):
+            if (lst[j] < lst[current] and ascend) or (lst[j] > lst[current] and not ascend):
+                current = j
+            time.sleep(0.001)
+        lst[current], lst[i] = lst[i], lst[current]
+        
         draw_list(draw_info, {i - 1: draw_info.GREEN, current: draw_info.RED}, True)
         yield True
-    return list
+    return lst
 
-def merge_sort(draw_info, lst, ascend = True):
-    print("list: ", lst)
+def merge_sort(first, last, lst, draw_info, ascend = True, first_time = True):
+    if first_time:
+        first = 0
+        last = len(draw_info.list) - 1
+        lst = draw_info.list
+        first_time = False
     if len(lst) > 1:
-        middle = len(lst)//2
+        global_middle = (first + last + 1) // 2
+
+        middle = len(lst) // 2
 
         L = lst[:middle]
         R = lst[middle:]
 
-        # Sorting the Left half
-        list(merge_sort(draw_info, L, ascend))
-
-        # Sorting the Right half
-        list(merge_sort(draw_info, R, ascend))
+        list(merge_sort(first, global_middle - 1, L, draw_info, ascend, False))
+        list(merge_sort(global_middle, last, R, draw_info, ascend, False))
 
         i = j = k = 0
         while i < len(L) and j < len(R):
-            if L[i] < R[j]:
+            if (L[i] < R[j] and ascend) or (L[i] > R[j] and not ascend):
                 lst[k] = L[i]
+                draw_info.list[k + first] = L[i]
                 i += 1
+                time.sleep(0.02)
+                draw_list(draw_info, {k + first: draw_info.GREEN, i + first: draw_info.RED}, True)
+                yield True
             else:
                 lst[k] = R[j]
+                draw_info.list[k + first] = R[j]
                 j += 1
+                time.sleep(0.02)
+                draw_list(draw_info, {k + first: draw_info.GREEN, j + first: draw_info.RED}, True)
+                yield True 
             k += 1
-            time.sleep(0.02)
-            draw_list(draw_info,{k: draw_info.GREEN, i: draw_info.RED},True)
-            yield True
-            
         
         while i < len(L):
             lst[k] = L[i]
+            draw_info.list[k + first] = L[i]
+            time.sleep(0.02)
+            draw_list(draw_info, {k + first: draw_info.GREEN, i + first: draw_info.RED}, True)
+            yield True
             i += 1
             k += 1
-            
+
         while j < len(R):
             lst[k] = R[j]
+            draw_info.list[k + first] = R[j]
+            time.sleep(0.02)
+            draw_list(draw_info, {k + first: draw_info.GREEN, j + first: draw_info.RED}, True)
+            yield True
             j += 1
             k += 1
     return lst
 
-def quick_sort(draw_info, list, ascend = True):
+def quick_sort(draw_info, ascend = True):
     pass
 
 if __name__ == "__main__":
