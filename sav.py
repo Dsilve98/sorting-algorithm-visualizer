@@ -1,4 +1,3 @@
-from re import L
 import pygame
 import random
 import time
@@ -33,8 +32,8 @@ class DrawInfo:
     X_MARGIN = 120
     Y_MARGIN = 180
 
-    FONT = pygame.font.SysFont('georgia', 26)
-    LARGE_FONT = pygame.font.SysFont('segoeuiblack', 36)
+    FONT = pygame.font.SysFont('georgia', 20)
+    LARGE_FONT = pygame.font.SysFont('segoeuiblack', 30)
 
     # windows init
     def __init__(self, width, height, list):
@@ -130,7 +129,7 @@ def main():
     max_val = 100
 
     list = generate_starting_list(n, min_val, max_val)
-    draw_info = DrawInfo(1280, 800, list)
+    draw_info = DrawInfo(960, 600, list)
 
     while run:
         clock.tick(60)
@@ -200,7 +199,6 @@ def insertion_sort(first, last, lst, draw_info, ascend = True):
             # handles when in correct position
             ascend_sort = i > 0 and lst[i - 1] > current and ascend
             descend_sort = i > 0 and lst[i - 1] < current and not ascend
-            
             # stops when in correct position
             if not ascend_sort and not descend_sort:
                 break
@@ -218,7 +216,7 @@ def selection_sort(first, last, lst, draw_info, ascend = True):
         for j in range(i + 1, len(lst)):
             if (lst[j] < lst[current] and ascend) or (lst[j] > lst[current] and not ascend):
                 current = j
-            time.sleep(0.001)
+            time.sleep(0.0005)
         lst[current], lst[i] = lst[i], lst[current]
         
         draw_list(draw_info, {i - 1: draw_info.GREEN, current: draw_info.RED}, True)
@@ -249,14 +247,14 @@ def merge_sort(first, last, lst, draw_info, ascend = True, first_time = True):
                 draw_info.list[k + first] = L[i]
                 i += 1
                 time.sleep(0.02)
-                draw_list(draw_info, {k + first: draw_info.GREEN, i + first: draw_info.RED}, True)
+                draw_list(draw_info, {k + first: draw_info.GREEN, (global_middle + k): draw_info.RED}, True)
                 yield True
             else:
                 lst[k] = R[j]
                 draw_info.list[k + first] = R[j]
                 j += 1
                 time.sleep(0.02)
-                draw_list(draw_info, {k + first: draw_info.GREEN, j + first: draw_info.RED}, True)
+                draw_list(draw_info, {k + first: draw_info.GREEN, (global_middle + k): draw_info.RED}, True)
                 yield True 
             k += 1
         
@@ -264,7 +262,7 @@ def merge_sort(first, last, lst, draw_info, ascend = True, first_time = True):
             lst[k] = L[i]
             draw_info.list[k + first] = L[i]
             time.sleep(0.02)
-            draw_list(draw_info, {k + first: draw_info.GREEN, i + first: draw_info.RED}, True)
+            draw_list(draw_info, {k + first: draw_info.GREEN, (global_middle + k): draw_info.RED}, True)
             yield True
             i += 1
             k += 1
@@ -273,14 +271,17 @@ def merge_sort(first, last, lst, draw_info, ascend = True, first_time = True):
             lst[k] = R[j]
             draw_info.list[k + first] = R[j]
             time.sleep(0.02)
-            draw_list(draw_info, {k + first: draw_info.GREEN, j + first: draw_info.RED}, True)
+            draw_list(draw_info, {k + first: draw_info.GREEN, (global_middle + k): draw_info.RED}, True)
             yield True
             j += 1
             k += 1
     return lst
 
-def quick_sort(draw_info, ascend = True):
-    pass
+def quick_sort(first, last, lst, draw_info, ascend = True, first_time = True):
+
+
+    
+    return lst
 
 if __name__ == "__main__":
     main()
